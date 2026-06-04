@@ -10,29 +10,13 @@ app.use(cors());
 app.use(express.json());
 
 // ── Connect to MySQL ─────────────────────────────────
-let dbConfig;
-
-if (process.env.MYSQL_URL) {
-  // Manual URL parsing for Railway
-  const url = process.env.MYSQL_URL
-    .replace('mysql://', '')
-    .replace('mysql2://', '');
-  const [credentials, rest]   = url.split('@');
-  const [user, password]      = credentials.split(':');
-  const [hostport, database]  = rest.split('/');
-  const [host, port]          = hostport.split(':');
-  dbConfig = { host, user, password, database, port: port || 3306 };
-} else {
-  dbConfig = {
-    host:     process.env.DB_HOST,
-    user:     process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port:     process.env.DB_PORT || 3306
-  };
-}
-
-const db = mysql.createConnection(dbConfig);
+const db = mysql.createConnection({
+  host:     process.env.DB_HOST,
+  user:     process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port:     process.env.DB_PORT || 3306
+});
 
 db.connect(err => {
   if (err) {
