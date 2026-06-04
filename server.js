@@ -13,14 +13,15 @@ app.use(express.json());
 let dbConfig;
 
 if (process.env.MYSQL_URL) {
-  const url = new URL(process.env.MYSQL_URL);
-  dbConfig = {
-    host:     url.hostname,
-    user:     url.username,
-    password: url.password,
-    database: url.pathname.replace('/', ''),
-    port:     url.port || 3306
-  };
+  // Manual URL parsing for Railway
+  const url = process.env.MYSQL_URL
+    .replace('mysql://', '')
+    .replace('mysql2://', '');
+  const [credentials, rest]   = url.split('@');
+  const [user, password]      = credentials.split(':');
+  const [hostport, database]  = rest.split('/');
+  const [host, port]          = hostport.split(':');
+  dbConfig = { host, user, password, database, port: port || 3306 };
 } else {
   dbConfig = {
     host:     process.env.DB_HOST,
