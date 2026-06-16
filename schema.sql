@@ -1,17 +1,25 @@
-CREATE DATABASE IF NOT EXISTS workout_tracker; 
-USE workout_tracker; 
 
-CREATE TABLE IF NOT EXISTS workout_tracker (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    date VARCHAR(10),
-    name varchar(100),
-    cat VARCHAR(20),
-    sets INT DEFAULT 0,
-    reps INT DEFAULT 0,
-    weight DECIMAL(6,2) DEFAULT 0,
-    dur DECIMAL(6,2) DEFAULT 0,
-    dist DECIMAL(6,2) DEFAULT 0,
-    pace VARCHAR(10) DEFAULT 0,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS sessions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  date DATE NOT NULL,
+  session_number INT,
+  notes VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS workouts (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  session_id INT NOT NULL,
+  name VARCHAR(100),
+  cat VARCHAR(20),
+  sets INT,
+  reps INT,
+  weight DECIMAL(6,2),
+  dur DECIMAL(6,2),
+  dist DECIMAL(6,2),
+  pace VARCHAR(10),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_session
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );

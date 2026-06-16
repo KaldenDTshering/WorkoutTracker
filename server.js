@@ -7,13 +7,16 @@ require('dotenv').config();
 // ── Create the app ───────────────────────────────────
 const app = express();
 app.use(cors({
-  origin: 'https://kaldendtshering.github.io',
+  origin: [
+    'https://kaldendtshering.github.io',
+    'https://workouttracker-production-8b2d.up.railway.app'
+  ],
   methods: ['GET', 'POST', 'DELETE']
 }));
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(__dirname + '/workout-tracker-v5'));
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/workout-tracker-v5/index.html');
 });
 
 // ── Connect to MySQL ─────────────────────────────────
