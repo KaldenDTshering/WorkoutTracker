@@ -8,6 +8,10 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(__dirname));
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
 
 // ── Connect to MySQL ─────────────────────────────────
 const db = mysql.createConnection({
@@ -30,26 +34,42 @@ db.connect(err => {
 // ROUTES
 // ══════════════════════════════════════════════════════
 
-// GET /workouts — fetch all workouts
+// GET /workouts — fetch all workouts joined with session data
 app.get('/workouts', (req, res) => {
-  const sql = 'SELECT * FROM workouts ORDER BY date DESC';
+  const sql = `
+    SELECT workouts.*, sessions.date, sessions.session_number
+    FROM workouts
+    INNER JOIN sessions ON workouts.session_id = sessions.id
+    ORDER BY sessions.date DESC
+  `;
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
   });
 });
 
-// POST /workouts — save a new workout
+// POST /workouts — create a session then save a new workout
 app.post('/workouts', (req, res) => {
-  const { id, date, name, cat, sets, reps, weight, dur, dist, pace, notes } = req.body;
-  const sql = `
-    INSERT INTO workouts (id, date, name, cat, sets, reps, weight, dur, dist, pace, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-  const values = [id, date, name, cat, sets, reps, weight, dur, dist, pace, notes];
-  db.query(sql, values, (err) => {
+  const { date, session_number, name, cat, sets, reps, weight, dur, dist, pace, notes } = req.body;
+
+  const sessionSql = 'INSERT INTO sessions (date, session_number, notes) VALUES (?, ?, ?)';
+  const sessionValues = [date, session_number, notes];
+
+  db.query(sessionSql, sessionValues, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ ok: true });
+
+    const session_id = results.insertId;
+
+    const workoutSql = `
+      INSERT INTO workouts (session_id, name, cat, sets, reps, weight, dur, dist, pace, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const workoutValues = [session_id, name, cat, sets, reps, weight, dur, dist, pace, notes];
+
+    db.query(workoutSql, workoutValues, (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true, session_id });
+    });
   });
 });
 
